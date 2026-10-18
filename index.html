@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#020b08">
+<title>CellRadar // Network Intelligence</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+:root{
+  --green:#00ff9c;
+  --green2:#00c878;
+  --bg:#020806;
+  --panel:#06130e;
+  --line:#123c2c;
+  --text:#d8fff0;
+  --muted:#6c9987;
+  --red:#ff526d;
+  --yellow:#ffd166;
+}
+
+body{
+  background:
+    radial-gradient(circle at 50% 0%,#073021 0,#020806 45%,#000 100%);
+  color:var(--text);
+  font-family:Consolas,"Courier New",monospace;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* scanline effect */
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(0,255,156,.025) 0px,
+    rgba(0,255,156,.025) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  z-index:999;
+}
+
+/* HEADER */
+
+header{
+  padding:16px;
+  border-bottom:1px solid var(--line);
+  background:rgba(2,10,7,.94);
+  position:sticky;
+  top:0;
+  z-index:1000;
+  backdrop-filter:blur(10px);
+}
+
+.logo{
+  font-size:23px;
+  font-weight:900;
+  color:var(--green);
+  letter-spacing:1px;
+  text-shadow:0 0 12px rgba(0,255,156,.5);
+}
+
+.logo span{
+  color:#fff;
+}
+
+.tagline{
+  color:var(--muted);
+  font-size:10px;
+  margin-top:4px;
+  letter-spacing:1px;
+}
+
+.status{
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:11px;
+}
+
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 10px var(--green);
+}
+
+/* MAIN */
+
+main{
+  width:min(950px,100%);
+  margin:auto;
+  padding:12px;
+}
+
+.panel{
+  background:rgba(5,18,13,.9);
+  border:1px solid var(--line);
+  border-radius:12px;
+  margin-bottom:12px;
+  box-shadow:0 0 25px rgba(0,255,156,.035);
+}
+
+.panel-title{
+  padding:11px 13px;
+  border-bottom:1px solid var(--line);
+  color:var(--green);
+  font-size:12px;
+  letter-spacing:1px;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+}
+
+.stat{
+  padding:13px 8px;
+  text-align:center;
+  border-right:1px solid var(--line);
+}
+
+.stat:last-child{
+  border-right:0;
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:9px;
+}
+
+.stat-value{
+  color:var(--green);
+  font-size:15px;
+  margin-top:5px;
+  font-weight:bold;
+}
+
+/* MAP */
+
+#map{
+  height:50vh;
+  min-height:330px;
+  width:100%;
+  filter:saturate(.65) contrast(1.1);
+}
+
+.leaflet-container{
+  background:#020806;
+}
+
+/* CONTROLS */
+
+.controls{
+  display:flex;
+  gap:8px;
+  padding:12px;
+}
+
+button{
+  flex:1;
+  border:1px solid var(--green2);
+  background:#03140d;
+  color:var(--green);
+  padding:12px;
+  border-radius:8px;
+  font-family:inherit;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.2s;
+}
+
+button:hover{
+  background:#073522;
+  box-shadow:0 0 15px rgba(0,255,156,.2);
+}
+
+button:active{
+  transform:scale(.98);
+}
+
+/* NETWORK */
+
+.network-list{
+  padding:10px;
+  display:grid;
+  gap:8px;
+}
+
+.network{
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:12px;
+  background:#03100b;
+}
+
+.network-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.network-name{
+  color:var(--green);
+  font-weight:bold;
+}
+
+.network-distance{
+  color:var(--yellow);
+  font-size:11px;
+}
+
+.network-info{
+  color:var(--muted);
+  font-size:10px;
+  margin-top:6px;
+  line-height:1.6;
+}
+
+.empty{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.7;
+  padding:10px;
+}
+
+/* TERMINAL */
+
+.terminal{
+  padding:13px;
+  color:#91cdb5;
+  font-size:10px;
+  line-height:1.8;
+  min-height:130px;
+}
+
+.green{
+  color:var(--green);
+}
+
+.yellow{
+  color:var(--yellow);
+}
+
+.red{
+  color:var(--red);
+}
+
+/* DEVELOPER */
+
+.dev{
+  padding:15px;
+  text-align:center;
+}
+
+.dev-name{
+  color:var(--green);
+  font-size:17px;
+  font-weight:bold;
+}
+
+.dev-role{
+  color:var(--muted);
+  font-size:10px;
+  margin:5px 0 12px;
+}
+
+.dev-links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:7px;
+}
+
+.dev-links a{
+  text-decoration:none;
+  color:var(--text);
+  border:1px solid var(--line);
+  padding:8px 10px;
+  border-radius:7px;
+  font-size:10px;
+}
+
+.dev-links a:hover{
+  color:var(--green);
+  border-color:var(--green2);
+}
+
+/* FOOTER */
+
+footer{
+  text-align:center;
+  padding:18px 10px 25px;
+  color:#426c5a;
+  font-size:9px;
+  letter-spacing:.5px;
+}
+
+/* MOBILE */
+
+@media(max-width:500px){
+  .logo{
+    font-size:20px;
+  }
+
+  .stats{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  #map{
+    height:46vh;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+  <div class="logo">
+    📡 CELL<span>RADAR</span>
+  </div>
+
+  <div class="tagline">
+    // CELLULAR INTELLIGENCE • NETWORK MAPPING • SIGNAL ANALYSIS
+  </div>
+
+  <div class="status">
+    <span class="dot"></span>
+    <span id="serverStatus">SYSTEM INITIALIZING...</span>
+  </div>
+
+</header>
+
+<main>
+
+  <!-- SYSTEM -->
+
+  <section class="panel">
+
+    <div class="panel-title">
+      [ SYSTEM STATUS ]
+    </div>
+
+    <div class="stats">
+
+      <div class="stat">
+        <div class="stat-label">GPS</div>
+        <div class="stat-value" id="gps">WAIT</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">CELLS</div>
+        <div class="stat-value" id="cells">0</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">SOURCE</div>
+        <div class="stat-value" id="source">OFFLINE</div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- MAP -->
+
+  <section class="panel">
+
+    <div class="panel-title">
+      [ LIVE NETWORK MAP ]
+    </div>
+
+    <div id="map"></div>
+
+    <div class="controls">
+
+      <button onclick="scanLocation()">
+        ⟳ SCAN
+      </button>
+
+      <button onclick="centerLocation()">
+        ⌖ LOCATE
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- NETWORKS -->
+
+  <section class="panel">
+
+    <div class="panel-title">
+      [ NEAREST NETWORKS ]
+    </div>
+
+    <div id="networkList" class="network-list">
+
+      <div class="empty">
+        &gt; Waiting for supported real cellular data source...<br>
+        &gt; No synthetic tower records loaded.
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- TERMINAL -->
+
+  <section class="panel">
+
+    <div class="panel-title">
+      [ TERMINAL ]
+    </div>
+
+    <div class="terminal" id="terminal">
+
+      <div>
+        <span class="green">[BOOT]</span>
+        CellRadar interface loaded.
+      </div>
+
+      <div>
+        <span class="green">[GPS]</span>
+        Requesting browser location permission...
+      </div>
+
+      <div>
+        <span class="yellow">[DATA]</span>
+        Waiting for backend / cellular data source.
+      </div>
+
+      <div>
+        <span class="green">&gt;</span>
+        System ready.
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- DEVELOPER -->
+
+  <section class="panel">
+
+    <div class="panel-title">
+      [ DEVELOPER ]
+    </div>
+
+    <div class="dev">
+
+      <div class="dev-name">
+        Dhannjay Uphade
+      </div>
+
+      <div class="dev-role">
+        Developer • Web • Software • Technology
+      </div>
+
+      <div class="dev-links">
+
+        <a href="https://dhannjayuphade.github.io/"
+           target="_blank">
+          🌐 Website
+        </a>
+
+        <a href="mailto:dhannjayuphade5@gmail.com">
+          ✉ Email
+        </a>
+
+        <a href="https://www.instagram.com/dhannjayuphade"
+           target="_blank">
+          ◎ Instagram
+        </a>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  CELLRADAR // BUILD 01<br>
+  Cellular mapping platform
+</footer>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+let map;
+let userMarker = null;
+let currentPosition = null;
+
+
+/* -------------------------
+   TERMINAL
+------------------------- */
+
+function log(message, type="green"){
+
+  const terminal =
+    document.getElementById("terminal");
+
+  const line =
+    document.createElement("div");
+
+  line.innerHTML =
+    `<span class="${type}">&gt;</span> ${message}`;
+
+  terminal.appendChild(line);
+
+  terminal.scrollTop =
+    terminal.scrollHeight;
+}
+
+
+/* -------------------------
+   MAP
+------------------------- */
+
+function initMap(){
+
+  map = L.map("map", {
+    zoomControl:false
+  }).setView([20.5937,78.9629],5);
+
+  L.control.zoom({
+    position:"bottomright"
+  }).addTo(map);
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom:19,
+      attribution:"© OpenStreetMap"
+    }
+  ).addTo(map);
+
+}
+
+
+/* -------------------------
+   GPS
+------------------------- */
+
+function scanLocation(){
+
+  if(!navigator.geolocation){
+
+    document.getElementById("gps")
+      .textContent="N/A";
+
+    log(
+      "Browser geolocation not supported.",
+      "red"
+    );
+
+    return;
+  }
+
+  document.getElementById("gps")
+    .textContent="SCAN";
+
+  log(
+    "Requesting high accuracy GPS..."
+  );
+
+  navigator.geolocation.getCurrentPosition(
+
+    position => {
+
+      currentPosition = position;
+
+      const lat =
+        position.coords.latitude;
+
+      const lon =
+        position.coords.longitude;
+
+      const accuracy =
+        Math.round(position.coords.accuracy);
+
+      document.getElementById("gps")
+        .textContent="OK";
+
+      map.setView(
+        [lat,lon],
+        15
+      );
+
+      if(userMarker){
+
+        userMarker.setLatLng(
+          [lat,lon]
+        );
+
+      }else{
+
+        userMarker =
+          L.marker([lat,lon])
+          .addTo(map)
+          .bindPopup(
+            `📍 Your Location<br>
+             Accuracy: ${accuracy}m`
+          );
+
+      }
+
+      log(
+        `GPS LOCKED // ${lat.toFixed(6)}, ${lon.toFixed(6)}`
+      );
+
+      log(
+        `Accuracy: ${accuracy}m`
+      );
+
+      log(
+        "Physical tower data requires a supported cellular data source.",
+        "yellow"
+      );
+
+    },
+
+    error => {
+
+      document.getElementById("gps")
+        .textContent="DENIED";
+
+      log(
+        "GPS permission unavailable.",
+        "red"
+      );
+
+      console.log(error);
+
+    },
+
+    {
+      enableHighAccuracy:true,
+      timeout:15000,
+      maximumAge:10000
+    }
+
+  );
+
+}
+
+
+/* -------------------------
+   CENTER
+------------------------- */
+
+function centerLocation(){
+
+  if(!currentPosition){
+
+    scanLocation();
+    return;
+  }
+
+  const lat =
+    currentPosition.coords.latitude;
+
+  const lon =
+    currentPosition.coords.longitude;
+
+  map.setView(
+    [lat,lon],
+    16
+  );
+
+}
+
+
+/* -------------------------
+   INIT
+------------------------- */
+
+window.addEventListener(
+  "load",
+  () => {
+
+    initMap();
+
+    document.getElementById(
+      "serverStatus"
+    ).textContent =
+      "WEB INTERFACE ONLINE";
+
+    scanLocation();
+
+  }
+);
+
+</script>
+
+</body>
+  </html>
