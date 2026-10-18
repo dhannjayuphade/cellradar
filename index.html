@@ -3,327 +3,239 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="theme-color" content="#020b08">
-<title>CellRadar // Network Intelligence</title>
+<meta name="theme-color" content="#050807">
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<title>CellRadar — Cellular Intelligence</title>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 
 <style>
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
+:root{
+  --green:#00ff88;
+  --green2:#00c96b;
+  --bg:#050807;
+  --panel:#09110d;
+  --line:#123b28;
+  --text:#d8ffe9;
+  --muted:#70a88a;
+  --red:#ff4d67;
+  --yellow:#ffd84d;
 }
 
-:root{
-  --green:#00ff9c;
-  --green2:#00c878;
-  --bg:#020806;
-  --panel:#06130e;
-  --line:#123c2c;
-  --text:#d8fff0;
-  --muted:#6c9987;
-  --red:#ff526d;
-  --yellow:#ffd166;
+*{
+  box-sizing:border-box;
 }
 
 body{
+  margin:0;
   background:
-    radial-gradient(circle at 50% 0%,#073021 0,#020806 45%,#000 100%);
+    radial-gradient(circle at top,#0b2117 0,#050807 45%);
   color:var(--text);
-  font-family:Consolas,"Courier New",monospace;
-  min-height:100vh;
-  overflow-x:hidden;
+  font-family:monospace;
 }
 
-/* scanline effect */
-body:before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  background:repeating-linear-gradient(
-    0deg,
-    rgba(0,255,156,.025) 0px,
-    rgba(0,255,156,.025) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-  z-index:999;
+.container{
+  width:min(1100px,94%);
+  margin:auto;
 }
-
-/* HEADER */
 
 header{
-  padding:16px;
+  padding:25px 0 18px;
   border-bottom:1px solid var(--line);
-  background:rgba(2,10,7,.94);
-  position:sticky;
-  top:0;
-  z-index:1000;
-  backdrop-filter:blur(10px);
 }
 
 .logo{
-  font-size:23px;
-  font-weight:900;
   color:var(--green);
-  letter-spacing:1px;
-  text-shadow:0 0 12px rgba(0,255,156,.5);
+  font-size:25px;
+  font-weight:bold;
 }
 
-.logo span{
-  color:#fff;
-}
-
-.tagline{
+.subtitle{
   color:var(--muted);
-  font-size:10px;
-  margin-top:4px;
-  letter-spacing:1px;
+  font-size:11px;
+  margin-top:7px;
 }
 
 .status{
-  margin-top:12px;
+  margin-top:15px;
   display:flex;
   align-items:center;
   gap:8px;
-  font-size:11px;
+  color:var(--green);
+  font-size:12px;
 }
 
 .dot{
-  width:8px;
-  height:8px;
+  width:9px;
+  height:9px;
   border-radius:50%;
   background:var(--green);
-  box-shadow:0 0 10px var(--green);
-}
-
-/* MAIN */
-
-main{
-  width:min(950px,100%);
-  margin:auto;
-  padding:12px;
-}
-
-.panel{
-  background:rgba(5,18,13,.9);
-  border:1px solid var(--line);
-  border-radius:12px;
-  margin-bottom:12px;
-  box-shadow:0 0 25px rgba(0,255,156,.035);
-}
-
-.panel-title{
-  padding:11px 13px;
-  border-bottom:1px solid var(--line);
-  color:var(--green);
-  font-size:12px;
-  letter-spacing:1px;
+  box-shadow:0 0 12px var(--green);
 }
 
 .stats{
   display:grid;
   grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin:15px 0;
 }
 
 .stat{
-  padding:13px 8px;
-  text-align:center;
-  border-right:1px solid var(--line);
+  background:var(--panel);
+  border:1px solid var(--line);
+  padding:14px;
+  border-radius:10px;
 }
 
-.stat:last-child{
-  border-right:0;
-}
-
-.stat-label{
+.stat small{
   color:var(--muted);
-  font-size:9px;
+  display:block;
 }
 
-.stat-value{
+.stat strong{
+  display:block;
   color:var(--green);
-  font-size:15px;
   margin-top:5px;
+  font-size:17px;
+}
+
+.panel{
+  background:rgba(9,17,13,.94);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:14px;
+  margin:14px 0;
+  box-shadow:0 0 25px rgba(0,255,136,.03);
+}
+
+.panel-title{
+  color:var(--green);
+  margin-bottom:12px;
   font-weight:bold;
 }
 
-/* MAP */
-
 #map{
-  height:50vh;
-  min-height:330px;
-  width:100%;
-  filter:saturate(.65) contrast(1.1);
+  height:430px;
+  border-radius:9px;
+  overflow:hidden;
+  border:1px solid var(--line);
 }
 
-.leaflet-container{
-  background:#020806;
-}
-
-/* CONTROLS */
-
-.controls{
+.buttons{
   display:flex;
-  gap:8px;
-  padding:12px;
+  gap:10px;
+  margin-top:12px;
 }
 
 button{
   flex:1;
   border:1px solid var(--green2);
-  background:#03140d;
+  background:#07150e;
   color:var(--green);
   padding:12px;
   border-radius:8px;
-  font-family:inherit;
+  font-family:monospace;
   font-weight:bold;
-  cursor:pointer;
-  transition:.2s;
-}
-
-button:hover{
-  background:#073522;
-  box-shadow:0 0 15px rgba(0,255,156,.2);
 }
 
 button:active{
   transform:scale(.98);
 }
 
-/* NETWORK */
-
-.network-list{
-  padding:10px;
+#networkList{
   display:grid;
-  gap:8px;
+  gap:10px;
 }
 
-.network{
+.cell{
   border:1px solid var(--line);
+  background:#07100b;
   border-radius:9px;
   padding:12px;
-  background:#03100b;
 }
 
-.network-head{
+.cell-head{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-}
-
-.network-name{
+  gap:10px;
   color:var(--green);
-  font-weight:bold;
 }
 
-.network-distance{
-  color:var(--yellow);
-  font-size:11px;
+.cell-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  margin-top:10px;
+  font-size:12px;
 }
 
-.network-info{
+.label{
   color:var(--muted);
-  font-size:10px;
-  margin-top:6px;
-  line-height:1.6;
 }
 
-.empty{
-  color:var(--muted);
-  font-size:11px;
-  line-height:1.7;
-  padding:10px;
+.value{
+  color:var(--text);
 }
-
-/* TERMINAL */
 
 .terminal{
-  padding:13px;
-  color:#91cdb5;
-  font-size:10px;
-  line-height:1.8;
-  min-height:130px;
+  background:#020403;
+  border:1px solid #0e3a25;
+  border-radius:9px;
+  padding:12px;
+  height:180px;
+  overflow:auto;
+  font-size:12px;
+  line-height:1.55;
 }
 
-.green{
-  color:var(--green);
-}
-
-.yellow{
-  color:var(--yellow);
-}
-
-.red{
-  color:var(--red);
-}
-
-/* DEVELOPER */
+.log-green{color:var(--green)}
+.log-yellow{color:var(--yellow)}
+.log-red{color:var(--red)}
+.log-muted{color:var(--muted)}
 
 .dev{
-  padding:15px;
   text-align:center;
 }
 
 .dev-name{
   color:var(--green);
-  font-size:17px;
+  font-size:18px;
   font-weight:bold;
 }
 
-.dev-role{
-  color:var(--muted);
-  font-size:10px;
-  margin:5px 0 12px;
-}
-
-.dev-links{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:7px;
-}
-
-.dev-links a{
-  text-decoration:none;
-  color:var(--text);
-  border:1px solid var(--line);
-  padding:8px 10px;
-  border-radius:7px;
-  font-size:10px;
-}
-
-.dev-links a:hover{
+.dev a{
   color:var(--green);
-  border-color:var(--green2);
+  text-decoration:none;
+  display:block;
+  margin:7px 0;
+  word-break:break-all;
 }
-
-/* FOOTER */
 
 footer{
   text-align:center;
-  padding:18px 10px 25px;
-  color:#426c5a;
-  font-size:9px;
-  letter-spacing:.5px;
+  padding:20px 0;
+  color:#47745c;
+  font-size:11px;
 }
 
-/* MOBILE */
-
-@media(max-width:500px){
-  .logo{
-    font-size:20px;
+@media(max-width:600px){
+  #map{
+    height:390px;
   }
 
   .stats{
-    grid-template-columns:repeat(3,1fr);
+    gap:7px;
   }
 
-  #map{
-    height:46vh;
+  .stat{
+    padding:10px;
+  }
+
+  .cell-grid{
+    grid-template-columns:1fr;
   }
 }
 </style>
@@ -331,386 +243,737 @@ footer{
 
 <body>
 
+<div class="container">
+
 <header>
+  <div class="logo">📡 CELLRADAR</div>
 
-  <div class="logo">
-    📡 CELL<span>RADAR</span>
-  </div>
-
-  <div class="tagline">
-    // CELLULAR INTELLIGENCE • NETWORK MAPPING • SIGNAL ANALYSIS
+  <div class="subtitle">
+    // CELLULAR INTELLIGENCE • NETWORK MAPPING • CELL ANALYSIS
   </div>
 
   <div class="status">
     <span class="dot"></span>
-    <span id="serverStatus">SYSTEM INITIALIZING...</span>
+    <span id="systemStatus">WEB INTERFACE ONLINE</span>
   </div>
-
 </header>
 
-<main>
 
-  <!-- SYSTEM -->
+<section class="stats">
 
-  <section class="panel">
+  <div class="stat">
+    <small>GPS</small>
+    <strong id="gpsStatus">WAITING</strong>
+  </div>
 
-    <div class="panel-title">
-      [ SYSTEM STATUS ]
+  <div class="stat">
+    <small>CELLS</small>
+    <strong id="cellCount">0</strong>
+  </div>
+
+  <div class="stat">
+    <small>SOURCE</small>
+    <strong id="sourceStatus">OFFLINE</strong>
+  </div>
+
+</section>
+
+
+<section class="panel">
+
+  <div class="panel-title">
+    [ MAP / CELLULAR SCAN ]
+  </div>
+
+  <div id="map"></div>
+
+  <div class="buttons">
+    <button onclick="scanLocation()">
+      ⚡ SCAN CELLS
+    </button>
+
+    <button onclick="centerLocation()">
+      ◎ MY LOCATION
+    </button>
+  </div>
+
+</section>
+
+
+<section class="panel">
+
+  <div class="panel-title">
+    [ DETECTED CELL RECORDS ]
+  </div>
+
+  <div id="networkList">
+
+    <div class="cell">
+      <div class="log-muted">
+        Waiting for cellular scan...
+      </div>
     </div>
 
-    <div class="stats">
+  </div>
 
-      <div class="stat">
-        <div class="stat-label">GPS</div>
-        <div class="stat-value" id="gps">WAIT</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-label">CELLS</div>
-        <div class="stat-value" id="cells">0</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-label">SOURCE</div>
-        <div class="stat-value" id="source">OFFLINE</div>
-      </div>
-
-    </div>
-
-  </section>
+</section>
 
 
-  <!-- MAP -->
+<section class="panel">
 
-  <section class="panel">
+  <div class="panel-title">
+    [ TERMINAL ]
+  </div>
 
-    <div class="panel-title">
-      [ LIVE NETWORK MAP ]
-    </div>
+  <div id="terminal" class="terminal"></div>
 
-    <div id="map"></div>
-
-    <div class="controls">
-
-      <button onclick="scanLocation()">
-        ⟳ SCAN
-      </button>
-
-      <button onclick="centerLocation()">
-        ⌖ LOCATE
-      </button>
-
-    </div>
-
-  </section>
+</section>
 
 
-  <!-- NETWORKS -->
+<section class="panel dev">
 
-  <section class="panel">
+  <div class="panel-title">
+    [ DEVELOPER ]
+  </div>
 
-    <div class="panel-title">
-      [ NEAREST NETWORKS ]
-    </div>
+  <div class="dev-name">
+    Dhannjay Uphade
+  </div>
 
-    <div id="networkList" class="network-list">
+  <div class="log-muted">
+    Developer • Web • Software • Technology
+  </div>
 
-      <div class="empty">
-        &gt; Waiting for supported real cellular data source...<br>
-        &gt; No synthetic tower records loaded.
-      </div>
+  <a href="https://dhannjayuphade.github.io/" target="_blank">
+    🌐 dhannjayuphade.github.io
+  </a>
 
-    </div>
+  <a href="mailto:dhannjayuphade5@gmail.com">
+    ✉ dhannjayuphade5@gmail.com
+  </a>
 
-  </section>
+  <a
+    href="https://www.instagram.com/dhannjayuphade?igsh=YzljYTk1ODg3Zg=="
+    target="_blank"
+  >
+    ◎ Instagram
+  </a>
 
+</section>
 
-  <!-- TERMINAL -->
-
-  <section class="panel">
-
-    <div class="panel-title">
-      [ TERMINAL ]
-    </div>
-
-    <div class="terminal" id="terminal">
-
-      <div>
-        <span class="green">[BOOT]</span>
-        CellRadar interface loaded.
-      </div>
-
-      <div>
-        <span class="green">[GPS]</span>
-        Requesting browser location permission...
-      </div>
-
-      <div>
-        <span class="yellow">[DATA]</span>
-        Waiting for backend / cellular data source.
-      </div>
-
-      <div>
-        <span class="green">&gt;</span>
-        System ready.
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- DEVELOPER -->
-
-  <section class="panel">
-
-    <div class="panel-title">
-      [ DEVELOPER ]
-    </div>
-
-    <div class="dev">
-
-      <div class="dev-name">
-        Dhannjay Uphade
-      </div>
-
-      <div class="dev-role">
-        Developer • Web • Software • Technology
-      </div>
-
-      <div class="dev-links">
-
-        <a href="https://dhannjayuphade.github.io/"
-           target="_blank">
-          🌐 Website
-        </a>
-
-        <a href="mailto:dhannjayuphade5@gmail.com">
-          ✉ Email
-        </a>
-
-        <a href="https://www.instagram.com/dhannjayuphade"
-           target="_blank">
-          ◎ Instagram
-        </a>
-
-      </div>
-
-    </div>
-
-  </section>
-
-</main>
 
 <footer>
-  CELLRADAR // BUILD 01<br>
-  Cellular mapping platform
+  CELLRADAR • Cellular Intelligence System
 </footer>
+
+</div>
 
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
+const API_BASE = "http://127.0.0.1:8080";
+
 let map;
-let userMarker = null;
-let currentPosition = null;
+let userMarker;
+let accuracyCircle;
+let cellMarkers = [];
+let currentLocation = null;
 
 
-/* -------------------------
-   TERMINAL
-------------------------- */
+/* ---------------- TERMINAL ---------------- */
 
-function log(message, type="green"){
+function log(message,type="green"){
 
-  const terminal =
-    document.getElementById("terminal");
+  const terminal = document.getElementById("terminal");
 
-  const line =
-    document.createElement("div");
+  const line = document.createElement("div");
 
-  line.innerHTML =
-    `<span class="${type}">&gt;</span> ${message}`;
+  line.className = "log-" + type;
+
+  const time = new Date().toLocaleTimeString();
+
+  line.textContent = `[${time}] ${message}`;
 
   terminal.appendChild(line);
 
-  terminal.scrollTop =
-    terminal.scrollHeight;
+  terminal.scrollTop = terminal.scrollHeight;
 }
 
 
-/* -------------------------
-   MAP
-------------------------- */
+/* ---------------- MAP ---------------- */
 
 function initMap(){
 
-  map = L.map("map", {
-    zoomControl:false
-  }).setView([20.5937,78.9629],5);
-
-  L.control.zoom({
-    position:"bottomright"
-  }).addTo(map);
+  map = L.map("map").setView(
+    [20.5937,78.9629],
+    5
+  );
 
   L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
       maxZoom:19,
-      attribution:"© OpenStreetMap"
+      attribution:"© OpenStreetMap contributors"
     }
   ).addTo(map);
 
+  log("Map engine initialized");
+
 }
 
 
-/* -------------------------
-   GPS
-------------------------- */
+/* ---------------- GPS ---------------- */
 
-function scanLocation(){
+function getLocation(){
 
-  if(!navigator.geolocation){
+  return new Promise((resolve,reject)=>{
 
-    document.getElementById("gps")
-      .textContent="N/A";
+    if(!navigator.geolocation){
 
-    log(
-      "Browser geolocation not supported.",
-      "red"
-    );
-
-    return;
-  }
-
-  document.getElementById("gps")
-    .textContent="SCAN";
-
-  log(
-    "Requesting high accuracy GPS..."
-  );
-
-  navigator.geolocation.getCurrentPosition(
-
-    position => {
-
-      currentPosition = position;
-
-      const lat =
-        position.coords.latitude;
-
-      const lon =
-        position.coords.longitude;
-
-      const accuracy =
-        Math.round(position.coords.accuracy);
-
-      document.getElementById("gps")
-        .textContent="OK";
-
-      map.setView(
-        [lat,lon],
-        15
+      reject(
+        new Error("Geolocation not supported")
       );
 
-      if(userMarker){
-
-        userMarker.setLatLng(
-          [lat,lon]
-        );
-
-      }else{
-
-        userMarker =
-          L.marker([lat,lon])
-          .addTo(map)
-          .bindPopup(
-            `📍 Your Location<br>
-             Accuracy: ${accuracy}m`
-          );
-
-      }
-
-      log(
-        `GPS LOCKED // ${lat.toFixed(6)}, ${lon.toFixed(6)}`
-      );
-
-      log(
-        `Accuracy: ${accuracy}m`
-      );
-
-      log(
-        "Physical tower data requires a supported cellular data source.",
-        "yellow"
-      );
-
-    },
-
-    error => {
-
-      document.getElementById("gps")
-        .textContent="DENIED";
-
-      log(
-        "GPS permission unavailable.",
-        "red"
-      );
-
-      console.log(error);
-
-    },
-
-    {
-      enableHighAccuracy:true,
-      timeout:15000,
-      maximumAge:10000
+      return;
     }
 
-  );
+    navigator.geolocation.getCurrentPosition(
+
+      position=>{
+
+        const lat =
+          position.coords.latitude;
+
+        const lon =
+          position.coords.longitude;
+
+        const accuracy =
+          position.coords.accuracy;
+
+        currentLocation = {
+          lat,
+          lon,
+          accuracy
+        };
+
+        resolve(currentLocation);
+
+      },
+
+      error=>{
+
+        reject(error);
+
+      },
+
+      {
+        enableHighAccuracy:true,
+        timeout:15000,
+        maximumAge:0
+      }
+
+    );
+
+  });
 
 }
 
 
-/* -------------------------
-   CENTER
-------------------------- */
+/* ---------------- SHOW GPS ---------------- */
 
-function centerLocation(){
+function showLocation(location){
 
-  if(!currentPosition){
+  const {
+    lat,
+    lon,
+    accuracy
+  } = location;
 
-    scanLocation();
-    return;
+  document.getElementById(
+    "gpsStatus"
+  ).textContent = "LOCKED";
+
+  if(userMarker){
+
+    userMarker.setLatLng([lat,lon]);
+
+  }else{
+
+    userMarker = L.marker(
+      [lat,lon]
+    )
+    .addTo(map)
+    .bindPopup(
+      "<b>YOUR LOCATION</b>"
+    );
+
   }
 
-  const lat =
-    currentPosition.coords.latitude;
+  if(accuracyCircle){
 
-  const lon =
-    currentPosition.coords.longitude;
+    accuracyCircle.setLatLng([lat,lon]);
+
+    accuracyCircle.setRadius(accuracy);
+
+  }else{
+
+    accuracyCircle =
+      L.circle(
+        [lat,lon],
+        {
+          radius:accuracy,
+          color:"#00ff88",
+          fillOpacity:.05
+        }
+      ).addTo(map);
+
+  }
 
   map.setView(
     [lat,lon],
-    16
+    14
   );
 
 }
 
 
-/* -------------------------
-   INIT
-------------------------- */
+/* ---------------- CLEAR CELLS ---------------- */
+
+function clearCellMarkers(){
+
+  cellMarkers.forEach(
+    marker=>map.removeLayer(marker)
+  );
+
+  cellMarkers = [];
+
+}
+
+
+/* ---------------- CELL COLOR ---------------- */
+
+function radioColor(radio){
+
+  if(!radio)
+    return "#00ff88";
+
+  radio = radio.toUpperCase();
+
+  if(radio.includes("LTE"))
+    return "#00ff88";
+
+  if(radio.includes("NR"))
+    return "#00d9ff";
+
+  if(radio.includes("UMTS"))
+    return "#ffd84d";
+
+  if(radio.includes("GSM"))
+    return "#ff9d4d";
+
+  return "#ffffff";
+
+}
+
+
+/* ---------------- SCAN ---------------- */
+
+async function scanLocation(){
+
+  log(
+    "Starting GPS scan...",
+    "yellow"
+  );
+
+  document.getElementById(
+    "systemStatus"
+  ).textContent =
+    "SCANNING...";
+
+  try{
+
+    const location =
+      await getLocation();
+
+    showLocation(location);
+
+    log(
+      `GPS LOCK ${location.lat.toFixed(6)}, ${location.lon.toFixed(6)}`
+    );
+
+    log(
+      `Accuracy: ±${Math.round(location.accuracy)}m`
+    );
+
+    await fetchCells(location);
+
+  }catch(error){
+
+    document.getElementById(
+      "gpsStatus"
+    ).textContent =
+      "DENIED";
+
+    document.getElementById(
+      "systemStatus"
+    ).textContent =
+      "GPS ERROR";
+
+    log(
+      "GPS error: " + error.message,
+      "red"
+    );
+
+    log(
+      "Allow browser location permission.",
+      "yellow"
+    );
+
+  }
+
+}
+
+
+/* ---------------- FETCH CELLS ---------------- */
+
+async function fetchCells(location){
+
+  log(
+    "Connecting to CellRadar backend..."
+  );
+
+  document.getElementById(
+    "sourceStatus"
+  ).textContent =
+    "CONNECTING";
+
+  const url =
+    `${API_BASE}/api/cells?lat=${encodeURIComponent(location.lat)}&lon=${encodeURIComponent(location.lon)}&radius=2`;
+
+  try{
+
+    const response =
+      await fetch(url);
+
+    const data =
+      await response.json();
+
+    if(!response.ok || !data.ok){
+
+      throw new Error(
+        data.error ||
+        "Backend request failed"
+      );
+
+    }
+
+    document.getElementById(
+      "sourceStatus"
+    ).textContent =
+      data.source || "ONLINE";
+
+    document.getElementById(
+      "cellCount"
+    ).textContent =
+      data.count ?? 0;
+
+    log(
+      `Source: ${data.source}`
+    );
+
+    log(
+      `Cells received: ${data.count}`
+    );
+
+    renderCells(
+      data.cells || []
+    );
+
+  }catch(error){
+
+    document.getElementById(
+      "sourceStatus"
+    ).textContent =
+      "ERROR";
+
+    log(
+      "Backend error: " + error.message,
+      "red"
+    );
+
+    log(
+      "Make sure server.py is running.",
+      "yellow"
+    );
+
+  }
+
+}
+
+
+/* ---------------- RENDER CELLS ---------------- */
+
+function renderCells(cells){
+
+  clearCellMarkers();
+
+  const list =
+    document.getElementById(
+      "networkList"
+    );
+
+  list.innerHTML = "";
+
+  if(!cells.length){
+
+    list.innerHTML = `
+      <div class="cell">
+        <div class="log-yellow">
+          No cell records found in this area.
+        </div>
+
+        <div class="log-muted">
+          This does not necessarily mean there
+          are no physical towers nearby.
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+
+  cells.forEach((cell,index)=>{
+
+    if(
+      typeof cell.lat !== "number" ||
+      typeof cell.lon !== "number"
+    ){
+
+      return;
+
+    }
+
+    const color =
+      radioColor(cell.radio);
+
+
+    /* MAP MARKER */
+
+    const marker =
+      L.circleMarker(
+        [cell.lat,cell.lon],
+        {
+          radius:9,
+          color:color,
+          fillColor:color,
+          fillOpacity:.75,
+          weight:2
+        }
+      ).addTo(map);
+
+
+    marker.bindPopup(`
+
+      <b style="color:#00ff88">
+        CELLRADAR CELL
+      </b>
+
+      <br><br>
+
+      Radio:
+      ${escapeHTML(cell.radio || "Unknown")}
+
+      <br>
+
+      Cell ID:
+      ${escapeHTML(String(cell.cellid ?? "Unknown"))}
+
+      <br>
+
+      MCC:
+      ${escapeHTML(String(cell.mcc ?? "Unknown"))}
+
+      <br>
+
+      MNC:
+      ${escapeHTML(String(cell.mnc ?? "Unknown"))}
+
+      <br>
+
+      Range:
+      ${cell.range_m != null
+        ? escapeHTML(String(cell.range_m)) + " m"
+        : "N/A"}
+
+    `);
+
+
+    cellMarkers.push(marker);
+
+
+    /* LIST CARD */
+
+    const card =
+      document.createElement("div");
+
+    card.className = "cell";
+
+    card.innerHTML = `
+
+      <div class="cell-head">
+
+        <span>
+          📡 CELL #${index + 1}
+        </span>
+
+        <span>
+          ${escapeHTML(cell.radio || "UNKNOWN")}
+        </span>
+
+      </div>
+
+      <div class="cell-grid">
+
+        <div>
+          <span class="label">Cell ID</span><br>
+          <span class="value">
+            ${escapeHTML(String(cell.cellid ?? "N/A"))}
+          </span>
+        </div>
+
+        <div>
+          <span class="label">MCC / MNC</span><br>
+          <span class="value">
+            ${escapeHTML(String(cell.mcc ?? "N/A"))}
+            /
+            ${escapeHTML(String(cell.mnc ?? "N/A"))}
+          </span>
+        </div>
+
+        <div>
+          <span class="label">Coordinates</span><br>
+          <span class="value">
+            ${cell.lat.toFixed(6)},
+            ${cell.lon.toFixed(6)}
+          </span>
+        </div>
+
+        <div>
+          <span class="label">Range</span><br>
+          <span class="value">
+            ${
+              cell.range_m != null
+              ? escapeHTML(String(cell.range_m)) + " m"
+              : "N/A"
+            }
+          </span>
+        </div>
+
+        <div>
+          <span class="label">Samples</span><br>
+          <span class="value">
+            ${escapeHTML(String(cell.samples ?? "N/A"))}
+          </span>
+        </div>
+
+        <div>
+          <span class="label">Signal</span><br>
+          <span class="value">
+            ${
+              cell.signal != null
+              ? escapeHTML(String(cell.signal))
+              : "N/A"
+            }
+          </span>
+        </div>
+
+      </div>
+
+    `;
+
+
+    card.onclick = ()=>{
+
+      map.setView(
+        [cell.lat,cell.lon],
+        16
+      );
+
+      marker.openPopup();
+
+    };
+
+
+    list.appendChild(card);
+
+  });
+
+}
+
+
+/* ---------------- SECURITY ---------------- */
+
+function escapeHTML(value){
+
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+/* ---------------- CENTER ---------------- */
+
+async function centerLocation(){
+
+  try{
+
+    const location =
+      await getLocation();
+
+    showLocation(location);
+
+    log(
+      "Map centered on current location."
+    );
+
+  }catch(error){
+
+    log(
+      "Location unavailable.",
+      "red"
+    );
+
+  }
+
+}
+
+
+/* ---------------- START ---------------- */
 
 window.addEventListener(
   "load",
-  () => {
+  ()=>{
 
     initMap();
 
-    document.getElementById(
-      "serverStatus"
-    ).textContent =
-      "WEB INTERFACE ONLINE";
+    log(
+      "CELLRADAR web interface initialized."
+    );
+
+    log(
+      "Backend: " + API_BASE
+    );
+
+    log(
+      "Real cell data mode enabled."
+    );
 
     scanLocation();
 
